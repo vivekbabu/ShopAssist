@@ -12,10 +12,7 @@ def initialize_conversation():
     Returns a list [{"role": "system", "content": system_message}]
     '''
 
-    print("Initialize Function Called")
-
     delimiter = "####"
-    #example_user_req = {'GPU intensity': 'high','Display quality': 'high','Portability': 'low','Multitasking': 'high','Processing speed': 'high','Budget': '150000'}
     example_user_req = "I need a laptop with high GPU intensity, high Display quality, high Portablity, high Multitasking, high Prcoessing speed and a budget of 150000."
 
     system_message = f"""
@@ -217,7 +214,7 @@ shopassist_custom_functions = [
     }
 ]
 
-def get_chat_completions_func_calling(input):
+def get_chat_completions_func_calling(input, include_budget):
   final_message = [
     {"role": "system", "content": "You are a helpful assistant."},
     {"role": "user", "content": input}
@@ -230,8 +227,12 @@ def get_chat_completions_func_calling(input):
     function_call = 'auto'
   )
   function_parameters = json.loads(completion.choices[0].message.function_call.arguments)
+  budget = 0
+  if include_budget:
+      budget = function_parameters['Budget']
+
   return extract_user_info(function_parameters['GPU intensity'], function_parameters['Display quality'], function_parameters['Portability'], function_parameters['Multitasking'],
-                                       function_parameters['Processing speed'], function_parameters['Budget'])
+                                       function_parameters['Processing speed'], budget)
 
 def compare_laptops_with_user(user_requirements):
     laptop_df= pd.read_csv('laptop_data.csv')
@@ -250,12 +251,9 @@ def compare_laptops_with_user(user_requirements):
 
     filtered_laptops = laptop_df.copy()
     filtered_laptops['Price'] = filtered_laptops['Price'].str.replace(',','').astype(int)
-    print(filtered_laptops)
 
     filtered_laptops = filtered_laptops[filtered_laptops['Price'] <= budget].copy()
 
-    print(filtered_laptops)
-    print(len(filtered_laptops))
     #These lines create a copy of the laptop_df DataFrame and assign it to filtered_laptops.
     #They then modify the 'Price' column in filtered_laptops by removing commas and converting the values to integers.
     #Finally, they filter filtered_laptops to include only rows where the 'Price' is less than or equal to the budget.
@@ -269,8 +267,7 @@ def compare_laptops_with_user(user_requirements):
     filtered_laptops['Score'] = 0
     for index, row in filtered_laptops.iterrows():
         user_product_match_str = row['laptop_feature']
-        laptop_values = dict(user_product_match_str)
-        print(laptop_values)
+        laptop_values = get_chat_completions_func_calling(user_product_match_str, False)
         #extract_dictionary_from_string(user_product_match_str)
         score = 0
 
@@ -287,8 +284,6 @@ def compare_laptops_with_user(user_requirements):
         filtered_laptops.loc[index, 'Score'] = score
 
     # Sort the laptops by score in descending order and return the top 5 products
-
-    print(filtered_laptops)
 
     top_laptops = filtered_laptops.drop('laptop_feature', axis=1)
     top_laptops = top_laptops.sort_values('Score', ascending=False).head(3)
@@ -321,13 +316,9 @@ def initialize_conv_reco(products):
 def product_map_layer(laptop_description):
     delimiter = "#####"
 
-    lap_spec = {
-        "GPU intensity":"(Type of the Graphics Processor)",
-        "Display quality":"(Display Type, Screen Resolution, Display Size)",
-        "Portability":"(Laptop Weight)",
-        "Multitasking":"(RAM Size)",
-        "Processing speed":"(CPU Type, Core, Clock Speed)"
-    }
+
+
+    lap_spec = "Laptop with (Type of the Graphics Processor) GPU intensity, (Display Type, Screen Resolution, Display Size) display quality, (Laptop Weight) portablity, (RAM Size) multi tasking, (CPU Type, Core, Clock Speed) processing speed"
 
     values = {'low','medium','high'}
 
@@ -367,17 +358,16 @@ def product_map_layer(laptop_description):
     {delimiter}
     Here is input output pair for few-shot learning:
     input 1: "The Dell Inspiron is a versatile laptop that combines powerful performance and affordability. It features an Intel Core i5 processor clocked at 2.4 GHz, ensuring smooth multitasking and efficient computing. With 8GB of RAM and an SSD, it offers quick data access and ample storage capacity. The laptop sports a vibrant 15.6" LCD display with a resolution of 1920x1080, delivering crisp visuals and immersive viewing experience. Weighing just 2.5 kg, it is highly portable, making it ideal for on-the-go usage. Additionally, it boasts an Intel UHD GPU for decent graphical performance and a backlit keyboard for enhanced typing convenience. With a one-year warranty and a battery life of up to 6 hours, the Dell Inspiron is a reliable companion for work or entertainment. All these features are packed at an affordable price of 35,000, making it an excellent choice for budget-conscious users."
-    output 1: {{'GPU intensity': 'medium','Display quality':'medium','Portability':'medium','Multitasking':'high','Processing speed':'medium'}}
-
+    output 1" "Laptop with medium GPU intensity, medium Dsiplay quality, medium Portability, high Multitaksing, medium Processing speed"
+    
     {delimiter}
-    ### Strictly don't keep any other text in the values of the JSON dictionary other than low or medium or high ###
+    ### Strictly don't keep any other text in the values for the keys other than low or medium or high. Also return only the string and nothing else###
     """
-    input = f"""Follow the above instructions step-by-step and output the dictionary in JSON format {lap_spec} for the following laptop {laptop_description}."""
+    input = f"""Follow the above instructions step-by-step and output the string {lap_spec} for the following laptop {laptop_description}."""
     #see that we are using the Completion endpoint and not the Chatcompletion endpoint
     messages=[{"role": "system", "content":prompt },{"role": "user","content":input}]
 
-    response = get_chat_completions(messages, json_format = True)
-
+    response = get_chat_completions(messages)
     return response
 
 # Define a Chat Completions API call
@@ -413,7 +403,6 @@ def get_chat_completions(input, json_format = False):
 
 def extract_user_info(GPU_intensity, Display_quality, Portability, Multitasking, Processing_speed, Budget):
     """
-    Dummy function to simulate extracting user info. In a real application, this function would perform some useful operations.
 
     Parameters:
     GPU_intensity (str): GPU intensity required by the user.

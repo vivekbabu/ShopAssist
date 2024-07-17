@@ -32,7 +32,6 @@ top_3_laptops = None
 @app.route("/")
 def default_func():
     global conversation_bot, conversation, top_3_laptops
-    print("Application Booted")
     return render_template("conversation_bot.html", name_xyz = conversation_bot)
 
 @app.route("/end_conv", methods = ['POST','GET'])
@@ -79,8 +78,7 @@ def invite():
         else:
 
             response = get_user_requirement_string(response_assistant)
-            result = get_chat_completions_func_calling(response)
-            print(result)
+            result = get_chat_completions_func_calling(response, True)
             conversation_bot.append({'bot':"Thank you for providing all the information. Kindly wait, while I fetch the products: \n"})
             
             top_3_laptops = compare_laptops_with_user(result)
@@ -102,7 +100,6 @@ def invite():
             conversation_reco.append({"role": "assistant", "content": recommendation})
             conversation_bot.append({'bot':recommendation})
 
-            print(recommendation + '\n')
 
     else:
         conversation_reco.append({"role": "user", "content": user_input})
