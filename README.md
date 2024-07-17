@@ -42,11 +42,7 @@ The Flask application utilizes various functionalities:
 
 ## 6. Conclusion
 
-ShopAssistAI provides an interactive and user-friendly way for users to find the perfect laptop. By leveraging AI-powered conversation and personalized recommendations, ShopAssistAI simplifies the laptop selection process. Future development could involve:
-
-- Integrating a wider variety of AI models for more sophisticated conversation capabilities and potentially leveraging OpenAI's fine-tuning to tailor the model to laptop recommendations.
-- Expanding the recommendation engine to include other electronic products.
-- Implementing a user feedback mechanism to continuously improve recommendation accuracy, potentially using reinforcement learning techniques.
+ShopAssistAI provides an interactive and user-friendly way for users to find the perfect laptop. By leveraging AI-powered conversation and personalized recommendations, ShopAssistAI simplifies the laptop selection process. 
 
 ## 7. Appendix - I
 
