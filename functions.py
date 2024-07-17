@@ -6,9 +6,13 @@ import json
 
 # This function initiates create the system and role conversation with Open AI model
 def initialize_conversation():
+   
+
     '''
     Returns a list [{"role": "system", "content": system_message}]
     '''
+
+    print("Initialize Function Called")
 
     delimiter = "####"
     example_user_req = {'GPU intensity': 'high','Display quality': 'high','Portability': 'low','Multitasking': 'high','Processing speed': 'high','Budget': '150000'}
@@ -180,6 +184,8 @@ shopassist_custom_functions = [
 ]
 
 def get_chat_completions_func_calling(input):
+  print("Function calling Called")
+  print("Input is "+  input)
   completion = openai.chat.completions.create(
     model = "gpt-3.5-turbo",
     messages = input,
@@ -192,7 +198,7 @@ def get_chat_completions_func_calling(input):
 
 
 def compare_laptops_with_user(user_req_string):
-    laptop_df= pd.read_csv("$filepath"+'updated_laptop.csv')
+    laptop_df= pd.read_csv('laptop_data.csv')
     user_requirements = dict(get_chat_completions_func_calling(user_req_string))
     # user_requirements = extract_dictionary_from_string(user_req_string)
     budget = int(user_requirements.get('budget', '0')) #.replace(',', '').split()[0])

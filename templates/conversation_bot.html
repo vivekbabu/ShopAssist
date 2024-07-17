@@ -1,51 +1,42 @@
-<html> 
-    <head>
-        <title>
-            Shopping Assistant
-        </title>
-        <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
-    </head>
-    <body> 
-        <div class="outercontainer">
-            <div class="center">
-                <h1 id="titlestyle">
-                    Shopping Assistant
-                </h1>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Shopping Assistant</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="outercontainer">
+        <div class="header">
+            <h1 class="title">Shopping Assistant</h1>
+        </div>
+        <div class="conversationcontainer" id="chatcontainer">
+            {% for entry in name_xyz %}
+            <div class="{% if entry.bot %}bot{% else %}user{% endif %}">
+                {% if entry.bot %}
+                {{ entry.bot }}
+                {% else %}
+                {{ entry.user }}
+                {% endif %}
             </div>
-            <div class="conversationcontainer" id="chatcontainer">
-                {% for entry in name_xyz %}
-                <div class="{% if entry.bot %}bot{% else %}user{% endif %}"> 
-                    {% if entry.bot %}
-                    {{ entry.bot }}
-                    {% else %}
-                    {{ entry.user }}
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-
-            <form action = "/invite" method="POST" class="center">
-                <input type ="text" name="user_input_message" id = "inputtextbox">
-                <input type="submit" value=" " id="submitbutton">
+            {% endfor %}
+        </div>
+        <div class="inputcontainer">
+            <form action="/invite" method="POST" class="inputform">
+                <input type="text" name="user_input_message" class="inputtextbox" placeholder="Type your message here...">
+                <button type="submit" class="submitbutton"></button>
             </form>
-
-            <form action="/end_conv" method="POST" class="center">
-                <button type="submit">END CONVERSATION</button>
+            <form action="/end_conv" method="POST" class="endform">
+                <button type="submit" class="endbutton">End Conversation</button>
             </form>
+        </div>
     </div>
-
     <script>
-        // Scroll to the bottom of the chat container on page load and after a new message is sent
         function scrollToBottom() {
             var chatContainer = document.getElementById('chatcontainer');
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
-    
         window.onload = scrollToBottom;
-
     </script>
-
-
-
-</body> 
+</body>
 </html>

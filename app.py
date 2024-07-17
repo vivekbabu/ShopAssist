@@ -30,6 +30,7 @@ top_3_laptops = None
 @app.route("/")
 def default_func():
     global conversation_bot, conversation, top_3_laptops
+    print("Application Booted")
     return render_template("conversation_bot.html", name_xyz = conversation_bot)
 
 @app.route("/end_conv", methods = ['POST','GET'])
