@@ -1,0 +1,6 @@
+Flask
+openai
+pandas
+ast
+re
+json
