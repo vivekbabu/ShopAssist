@@ -145,39 +145,7 @@ def get_user_requirement_string(response_assistant):
 
     return confirmation.choices[0].message.content
 
-# Python function to if dictionary is present in the Open AI output chat completion message
-def dictionary_present(response):
-    delimiter = "####"
-    user_req = {'GPU intensity': 'high','Display quality': 'high','Portability': 'medium','Multitasking': 'high','Processing speed': 'high','Budget': '200000 INR'}
-    prompt = f"""You are a python expert. You are provided an input.
-            You have to check if there is a python dictionary present in the string.
-            It will have the following format {user_req}.
-            Your task is to just extract and return only the python dictionary from the input.
-            The output should match the format as {user_req}.
-            ###Make sure that the value of budget is also present in the user input.###
-            The output should contain the exact keys and values as present in the input.
-
-            Here are some sample input output pairs for better understanding:
-            {delimiter}
-            input: - GPU intensity: low - Display quality: high - Portability: low - Multitasking: high - Processing speed: medium - Budget: 50,000 INR
-            output: {{'GPU intensity': 'low', 'Display quality': 'high', 'Portability': 'low', 'Multitasking': 'high', 'Processing speed': 'medium', 'Budget': '50000'}}
-
-            input: {{'GPU intensity':     'low', 'Display quality':     'high', 'Portability':    'low', 'Multitasking': 'high', 'Processing speed': 'medium', 'Budget': '90,000'}}
-            output: {{'GPU intensity': 'low', 'Display quality': 'high', 'Portability': 'low', 'Multitasking': 'high', 'Processing speed': 'medium', 'Budget': '90000'}}
-
-            input: Here is your user profile 'GPU intensity': 'high','Display quality': 'high','Portability': 'medium','Multitasking': 'low','Processing speed': 'high','Budget': '200000 INR'
-            output: {{'GPU intensity': 'high','Display quality': 'high','Portability': 'medium','Multitasking': 'high','Processing speed': 'low','Budget': '200000'}}
-            {delimiter}
-
-            """
-    messages=[{"role": "system", "content":prompt },{"role": "user", "content":f"""Here is the user input: {response}""" }]
-    confirmation = openai.chat.completions.create(
-                                    model="gpt-3.5-turbo",
-                                    messages = messages)
-
-    return confirmation.choices[0].message.content
-
-# Create custome function for using Open AI function calling
+# Create custom function for using Open AI function calling
 shopassist_custom_functions = [
     {
         'name': 'extract_user_info',
@@ -214,6 +182,7 @@ shopassist_custom_functions = [
     }
 ]
 
+# Calls OpenAI API to return the function calling parameters
 def get_chat_completions_func_calling(input, include_budget):
   final_message = [
     {"role": "system", "content": "You are a helpful assistant."},
@@ -234,30 +203,38 @@ def get_chat_completions_func_calling(input, include_budget):
   return extract_user_info(function_parameters['GPU intensity'], function_parameters['Display quality'], function_parameters['Portability'], function_parameters['Multitasking'],
                                        function_parameters['Processing speed'], budget)
 
+# The local function that we have written to extract the laptop information for user
+def extract_user_info(GPU_intensity, Display_quality, Portability, Multitasking, Processing_speed, Budget):
+    """
+
+    Parameters:
+    GPU_intensity (str): GPU intensity required by the user.
+    Display_quality (str): Display quality required by the user.
+    Portability (str): Portability required by the user.
+    Multitasking (str): Multitasking capability required by the user.
+    Processing_speed (str): Processing speed required by the user.
+    Budget (int): Budget of the user.
+
+    Returns:
+    dict: A dictionary containing the extracted information.
+    """
+    return {
+        "GPU intensity": GPU_intensity,
+        "Display quality": Display_quality,
+        "Portability": Portability,
+        "Multitasking": Multitasking,
+        "Processing speed": Processing_speed,
+        "Budget": Budget
+    }
+
+# Compare and find laptops that match user requirements
 def compare_laptops_with_user(user_requirements):
     laptop_df= pd.read_csv('laptop_data.csv')
     laptop_df['laptop_feature'] = laptop_df['Description'].apply(lambda x: product_map_layer(x))
-
-
-
-    #user_requirements = dict(get_chat_completions_func_calling(user_req_string))
-    # user_requirements = extract_dictionary_from_string(user_req_string)
     budget = int(user_requirements.get('Budget', '0')) #.replace(',', '').split()[0])
-    #This line retrieves the value associated with the key 'budget' from the user_requirements dictionary.
-    #If the key is not found, the default value '0' is used.
-    #The value is then processed to remove commas, split it into a list of strings, and take the first element of the list.
-    #Finally, the resulting value is converted to an integer and assigned to the variable budget.
-
-
     filtered_laptops = laptop_df.copy()
     filtered_laptops['Price'] = filtered_laptops['Price'].str.replace(',','').astype(int)
-
     filtered_laptops = filtered_laptops[filtered_laptops['Price'] <= budget].copy()
-
-    #These lines create a copy of the laptop_df DataFrame and assign it to filtered_laptops.
-    #They then modify the 'Price' column in filtered_laptops by removing commas and converting the values to integers.
-    #Finally, they filter filtered_laptops to include only rows where the 'Price' is less than or equal to the budget.
-
     mappings = {
         'low': 0,
         'medium': 1,
@@ -268,7 +245,6 @@ def compare_laptops_with_user(user_requirements):
     for index, row in filtered_laptops.iterrows():
         user_product_match_str = row['laptop_feature']
         laptop_values = get_chat_completions_func_calling(user_product_match_str, False)
-        #extract_dictionary_from_string(user_product_match_str)
         score = 0
 
         for key, user_value in user_requirements.items():
@@ -400,26 +376,3 @@ def get_chat_completions(input, json_format = False):
         output = chat_completion.choices[0].message.content
 
     return output
-
-def extract_user_info(GPU_intensity, Display_quality, Portability, Multitasking, Processing_speed, Budget):
-    """
-
-    Parameters:
-    GPU_intensity (str): GPU intensity required by the user.
-    Display_quality (str): Display quality required by the user.
-    Portability (str): Portability required by the user.
-    Multitasking (str): Multitasking capability required by the user.
-    Processing_speed (str): Processing speed required by the user.
-    Budget (int): Budget of the user.
-
-    Returns:
-    dict: A dictionary containing the extracted information.
-    """
-    return {
-        "GPU intensity": GPU_intensity,
-        "Display quality": Display_quality,
-        "Portability": Portability,
-        "Multitasking": Multitasking,
-        "Processing speed": Processing_speed,
-        "Budget": Budget
-    }
