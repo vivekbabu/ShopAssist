@@ -81,22 +81,18 @@ Appendix – II
 
 User output example screenshot:
 
-1. Screenshot A:
+1. Screenshot 1:
 
-![ScreenshotA](Images/ScreenshotA.jpg)
+![ScreenshotA](Images/Screenshot1.png)
 
-2. Screenshot B:
+2. Screenshot 2:
 
-![ScreenshotB](Images/ScreenshotB.jpg)
+![ScreenshotB](Images/Screenshot2.png)
 
-3. Screenshot C:
+3. Screenshot 3:
 
-![ScreenshotC](Images/ScreenshotC.jpg)
+![ScreenshotC](Images/Screenshot3.png)
 
-4. Screenshot D:
+4. Screenshot 4:
 
-![ScreenshotD](Images/ScreenshotD.jpg)
-
-5. Screenshot E:
-
-![ScreenshotE](Images/ScreenshotE.jpg)
+![ScreenshotD](Images/Screenshot4.png)
