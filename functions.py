@@ -272,7 +272,7 @@ def get_chat_completions_func_calling(input):
   return completion.choices[0].message.function_call.arguments
 
 def compare_laptops_with_user(user_requirements):
-    laptop_df= pd.read_csv('laptop_data.csv')
+    laptop_df= pd.read_csv('updated_laptop.csv')
     #user_requirements = dict(get_chat_completions_func_calling(user_req_string))
     # user_requirements = extract_dictionary_from_string(user_req_string)
     budget = int(user_requirements.get('budget', '0')) #.replace(',', '').split()[0])
