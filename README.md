@@ -50,12 +50,6 @@ ShopAssistAI provides an interactive and user-friendly way for users to find the
 
 ## 7. Appendix - I
 
-### High-Level Flow Chart
-
-**Invite Flow**
-
-**Intent Confirmation Layer / Recommendation Layer**
-
 ### Key Points:
 
 - User interacts through a web browser.
