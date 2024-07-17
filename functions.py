@@ -15,18 +15,19 @@ def initialize_conversation():
     print("Initialize Function Called")
 
     delimiter = "####"
-    example_user_req = {'GPU intensity': 'high','Display quality': 'high','Portability': 'low','Multitasking': 'high','Processing speed': 'high','Budget': '150000'}
+    #example_user_req = {'GPU intensity': 'high','Display quality': 'high','Portability': 'low','Multitasking': 'high','Processing speed': 'high','Budget': '150000'}
+    example_user_req = "I need a laptop with high GPU intensity, high Display quality, high Portablity, high Multitasking, high Prcoessing speed and a budget of 150000."
 
     system_message = f"""
 
     You are an intelligent laptop gadget expert and your goal is to find the best laptop for a user.
     You need to ask relevant questions and understand the user profile by analysing the user's responses.
-    You final objective is to fill the values for the different keys ('GPU intensity','Display quality','Portability','Multitasking','Processing speed','Budget') in the python dictionary and be confident of the values.
-    These key value pairs define the user's profile.
-    The python dictionary looks like this {{'GPU intensity': 'values','Display quality': 'values','Portability': 'values','Multitasking': 'values','Processing speed': 'values','Budget': 'values'}}
+    You final objective is to find the values for the different keys ('GPU intensity','Display quality','Portability','Multitasking','Processing speed','Budget') in the final string and be confident of the values.
+    The values for these keys determine the users profile
+    The string should look like I need a laptop with high GPU intensity, high Display quality, high Portablity, high Multitasking, high Prcoessing speed and a budget of 150000.
     The values for all keys, except 'budget', should be 'low', 'medium', or 'high' based on the importance of the corresponding keys, as stated by user.
     The value for 'budget' should be a numerical value extracted from the user's response.
-    The values currently in the dictionary are only representative values.
+    The values currently in the string provided are only representative values.
 
     {delimiter}Here are some instructions around the values for the different keys. If you do not follow this, you'll be heavily penalised.
     - The values for all keys, except 'Budget', should strictly be either 'low', 'medium', or 'high' based on the importance of the corresponding keys, as stated by user.
@@ -35,10 +36,10 @@ def initialize_conversation():
     - Do not randomly assign values to any of the keys. The values need to be inferred from the user's response.
     {delimiter}
 
-    To fill the dictionary, you need to have the following chain of thoughts:
+    To fill the values in the string, you need to have the following chain of thoughts:
     {delimiter} Thought 1: Ask a question to understand the user's profile and requirements. \n
     If their primary use for the laptop is unclear. Ask another question to comprehend their needs.
-    You are trying to fill the values of all the keys ('GPU intensity','Display quality','Portability','Multitasking','Processing speed','Budget') in the python dictionary by understanding the user requirements.
+    You are trying to fill the values of all the keys ('GPU intensity','Display quality','Portability','Multitasking','Processing speed','Budget') in the string by understanding the user requirements.
     Identify the keys for which you can fill the values confidently using the understanding. \n
     Remember the instructions around the values for the different keys.
     Answer "Yes" or "No" to indicate if you understand the requirements and have updated the values for the relevant keys. \n
@@ -100,12 +101,45 @@ def intent_confirmation_layer(response_assistant):
     delimiter = "####"
     prompt = f"""
     You are a senior evaluator who has an eye for detail.
-    You are provided an string input. You need to evaluate if the JSON input has the following keys: 'GPU intensity','Display quality','Portability','Multitasking',' Processing speed','Budget'
-    Next you need to evaluate if the keys have the the values filled correctly.
-    The values for all keys, except 'budget', should be 'low', 'medium', or 'high' based on the importance as stated by user. The value for the key 'budget' needs to contain a number with currency.
-    Output a string 'Yes' if the values are correctly filled for all keys listed above.
-    Otherwise out the string 'No'.
-    Only output a one-word string - Yes/No.
+    You are provided an string input. You need to see that in the string the values for following 
+    1. GPU intensity
+    2. Display Quality
+    3. Portability
+    4. Multi tasking
+    5. Processing speed
+    6. Budget
+    have been captured successfully. Return Yes Or No
+
+    The values for all keys, except 'budget', must be 'low', 'medium', or 'high' and the value of 'budget' must be a number. 
+
+    Please not that every key should have a value and budget should be a valid number
+
+    Remember return No if any one of the values is not captured
+
+    """
+    messages=[{"role": "system", "content":prompt },{"role": "user", "content":f"""Here is the input: {response_assistant}""" }]
+    confirmation = openai.chat.completions.create(
+                                    model="gpt-3.5-turbo",
+                                    messages = messages)
+
+    return confirmation.choices[0].message.content
+
+
+# The intent confirmation layer evaluates the output of the chat completion from Open AI API
+def get_user_requirement_string(response_assistant):
+    delimiter = "####"
+    prompt = f"""
+    You are given a string where the user requirements for the given keys different keys ('GPU intensity','Display quality','Portability','Multitasking','Processing speed','Budget') has
+    been captured inside that. The values for all keys, except 'budget', will be 'low', 'medium', or 'high' and the value of 'budget' will be a number.
+    
+    You have to give out the string in the format where only the user intent is present and the output should match the given format
+    I need a laptop with high GPU intensity, medium display quality, high portablity, high multi tasking, high processing speed and a budget of 100000.
+    The values currently in the string provided are only representative values.
+
+    Here is a sample input and output 
+
+    input : Great! Based on your requirements, I have a clear picture of your needs. You prioritize low GPU intensity, high display quality, low portability, high multitasking, high processing speed, and have a budget of 200000 INR. Thank you for providing all the necessary information.
+    output : I need a laptop with low GPU intensity, high display quality, low portablity, high multitasking, high processing speed and a budget of 200000.
     """
     messages=[{"role": "system", "content":prompt },{"role": "user", "content":f"""Here is the input: {response_assistant}""" }]
     confirmation = openai.chat.completions.create(
@@ -186,20 +220,23 @@ shopassist_custom_functions = [
 def get_chat_completions_func_calling(input):
   print("Function calling Called")
   print("Input is "+  input)
+  final_message = [
+    {"role": "system", "content": "You are a helpful assistant."},
+    {"role": "user", "content": input}
+    ]
+
   completion = openai.chat.completions.create(
     model = "gpt-3.5-turbo",
-    messages = input,
+    messages = final_message,
     functions = shopassist_custom_functions,
     function_call = 'auto'
   )
   #return completion.choices[0].message.content
-  return completion.choices[0].message
+  return completion.choices[0].message.function_call.arguments
 
-
-
-def compare_laptops_with_user(user_req_string):
+def compare_laptops_with_user(user_requirements):
     laptop_df= pd.read_csv('laptop_data.csv')
-    user_requirements = dict(get_chat_completions_func_calling(user_req_string))
+    #user_requirements = dict(get_chat_completions_func_calling(user_req_string))
     # user_requirements = extract_dictionary_from_string(user_req_string)
     budget = int(user_requirements.get('budget', '0')) #.replace(',', '').split()[0])
     #This line retrieves the value associated with the key 'budget' from the user_requirements dictionary.
@@ -211,6 +248,8 @@ def compare_laptops_with_user(user_req_string):
     filtered_laptops = laptop_df.copy()
     filtered_laptops['Price'] = filtered_laptops['Price'].str.replace(',','').astype(int)
     filtered_laptops = filtered_laptops[filtered_laptops['Price'] <= budget].copy()
+
+    print(filtered_laptops)
     #These lines create a copy of the laptop_df DataFrame and assign it to filtered_laptops.
     #They then modify the 'Price' column in filtered_laptops by removing commas and converting the values to integers.
     #Finally, they filter filtered_laptops to include only rows where the 'Price' is less than or equal to the budget.
@@ -241,6 +280,9 @@ def compare_laptops_with_user(user_req_string):
         filtered_laptops.loc[index, 'Score'] = score
 
     # Sort the laptops by score in descending order and return the top 5 products
+
+    print(filtered_laptops)
+
     top_laptops = filtered_laptops.drop('laptop_feature', axis=1)
     top_laptops = top_laptops.sort_values('Score', ascending=False).head(3)
 
