@@ -1,3 +1,7 @@
+#IMPORTANT
+
+Since the OpenAPI key is a secret **it has not been checked in**. Before running the project remember to create an **api_key.txt** file and add the openAPI key into that file 
+
 # ShopAssistAI
 Conversational Laptop Recommendation System using Open AI function calling
 
