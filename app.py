@@ -77,19 +77,9 @@ def invite():
             conversation.append({"role": "assistant", "content": response_assistant})
             conversation_bot.append({'bot':response_assistant})
         else:
-            print("Response assistant after final is " + response_assistant)
+
             response = get_user_requirement_string(response_assistant)
-            print("The string produced is " + response)
-
-            function_parameters = get_chat_completions_func_calling(response)
-            print("parameters are " + function_parameters)
-
-            function_parameters = json.loads(function_parameters)
-
-            result = extract_user_info(function_parameters['GPU intensity'], function_parameters['Display quality'], function_parameters['Portability'], function_parameters['Multitasking'],
-                                       function_parameters['Processing speed'], function_parameters['Budget'])
-
-            
+            result = get_chat_completions_func_calling(response)
             print(result)
             conversation_bot.append({'bot':"Thank you for providing all the information. Kindly wait, while I fetch the products: \n"})
             
@@ -127,30 +117,6 @@ def invite():
         conversation.append({"role": "assistant", "content": response_asst_reco})
         conversation_bot.append({'bot':response_asst_reco})
     return redirect(url_for('default_func'))
-
-def extract_user_info(GPU_intensity, Display_quality, Portability, Multitasking, Processing_speed, Budget):
-    """
-    Dummy function to simulate extracting user info. In a real application, this function would perform some useful operations.
-
-    Parameters:
-    GPU_intensity (str): GPU intensity required by the user.
-    Display_quality (str): Display quality required by the user.
-    Portability (str): Portability required by the user.
-    Multitasking (str): Multitasking capability required by the user.
-    Processing_speed (str): Processing speed required by the user.
-    Budget (int): Budget of the user.
-
-    Returns:
-    dict: A dictionary containing the extracted information.
-    """
-    return {
-        "GPU_intensity": GPU_intensity,
-        "Display_quality": Display_quality,
-        "Portability": Portability,
-        "Multitasking": Multitasking,
-        "Processing_speed": Processing_speed,
-        "Budget": Budget
-    }
 
 if __name__ == '__main__':
     app.run(debug=True, host= "0.0.0.0", port=5001)

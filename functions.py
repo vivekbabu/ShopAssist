@@ -218,8 +218,6 @@ shopassist_custom_functions = [
 ]
 
 def get_chat_completions_func_calling(input):
-  print("Function calling Called")
-  print("Input is "+  input)
   final_message = [
     {"role": "system", "content": "You are a helpful assistant."},
     {"role": "user", "content": input}
@@ -231,14 +229,19 @@ def get_chat_completions_func_calling(input):
     functions = shopassist_custom_functions,
     function_call = 'auto'
   )
-  #return completion.choices[0].message.content
-  return completion.choices[0].message.function_call.arguments
+  function_parameters = json.loads(completion.choices[0].message.function_call.arguments)
+  return extract_user_info(function_parameters['GPU intensity'], function_parameters['Display quality'], function_parameters['Portability'], function_parameters['Multitasking'],
+                                       function_parameters['Processing speed'], function_parameters['Budget'])
 
 def compare_laptops_with_user(user_requirements):
     laptop_df= pd.read_csv('laptop_data.csv')
+    laptop_df['laptop_feature'] = laptop_df['Description'].apply(lambda x: product_map_layer(x))
+
+
+
     #user_requirements = dict(get_chat_completions_func_calling(user_req_string))
     # user_requirements = extract_dictionary_from_string(user_req_string)
-    budget = int(user_requirements.get('budget', '0')) #.replace(',', '').split()[0])
+    budget = int(user_requirements.get('Budget', '0')) #.replace(',', '').split()[0])
     #This line retrieves the value associated with the key 'budget' from the user_requirements dictionary.
     #If the key is not found, the default value '0' is used.
     #The value is then processed to remove commas, split it into a list of strings, and take the first element of the list.
@@ -247,9 +250,12 @@ def compare_laptops_with_user(user_requirements):
 
     filtered_laptops = laptop_df.copy()
     filtered_laptops['Price'] = filtered_laptops['Price'].str.replace(',','').astype(int)
+    print(filtered_laptops)
+
     filtered_laptops = filtered_laptops[filtered_laptops['Price'] <= budget].copy()
 
     print(filtered_laptops)
+    print(len(filtered_laptops))
     #These lines create a copy of the laptop_df DataFrame and assign it to filtered_laptops.
     #They then modify the 'Price' column in filtered_laptops by removing commas and converting the values to integers.
     #Finally, they filter filtered_laptops to include only rows where the 'Price' is less than or equal to the budget.
@@ -263,7 +269,8 @@ def compare_laptops_with_user(user_requirements):
     filtered_laptops['Score'] = 0
     for index, row in filtered_laptops.iterrows():
         user_product_match_str = row['laptop_feature']
-        laptop_values = dict(get_chat_completions_func_calling(user_product_match_str))
+        laptop_values = dict(user_product_match_str)
+        print(laptop_values)
         #extract_dictionary_from_string(user_product_match_str)
         score = 0
 
@@ -310,3 +317,120 @@ def initialize_conv_reco(products):
     """
     conversation = [{"role": "system", "content": system_message }]
     return conversation
+
+def product_map_layer(laptop_description):
+    delimiter = "#####"
+
+    lap_spec = {
+        "GPU intensity":"(Type of the Graphics Processor)",
+        "Display quality":"(Display Type, Screen Resolution, Display Size)",
+        "Portability":"(Laptop Weight)",
+        "Multitasking":"(RAM Size)",
+        "Processing speed":"(CPU Type, Core, Clock Speed)"
+    }
+
+    values = {'low','medium','high'}
+
+    prompt=f"""
+    You are a Laptop Specifications Classifier whose job is to extract the key features of laptops and classify them as per their requirements.
+    To analyze each laptop, perform the following steps:
+    Step 1: Extract the laptop's primary features from the description {laptop_description}
+    Step 2: Store the extracted features in {lap_spec} \
+    Step 3: Classify each of the items in {lap_spec} into {values} based on the following rules: \
+    {delimiter}
+    GPU Intensity:
+    - low: <<< if GPU is entry-level such as an integrated graphics processor or entry-level dedicated graphics like Intel UHD >>> , \n
+    - medium: <<< if mid-range dedicated graphics like M1, AMD Radeon, Intel Iris >>> , \n
+    - high: <<< high-end dedicated graphics like Nvidia RTX >>> , \n
+
+    Display Quality:
+    - low: <<< if resolution is below Full HD (e.g., 1366x768). >>> , \n
+    - medium: <<< if Full HD resolution (1920x1080) or higher. >>> , \n
+    - high: <<< if High-resolution display (e.g., 4K, Retina) with excellent color accuracy and features like HDR support. >>> \n
+
+    Portability:
+    - high: <<< if laptop weight is less than 1.51 kg >>> , \n
+    - medium: <<< if laptop weight is between 1.51 kg and 2.51 kg >>> , \n
+    - low: <<< if laptop weight is greater than 2.51 kg >>> \n
+
+    Multitasking:
+    - low: <<< If RAM size is 8 GB, 12 GB >>> , \n
+    - medium: <<< if RAM size is 16 GB >>> , \n
+    - high: <<< if RAM size is 32 GB, 64 GB >>> \n
+
+    Processing Speed:
+    - low: <<< if entry-level processors like Intel Core i3, AMD Ryzen 3 >>> , \n
+    - medium: <<< if Mid-range processors like Intel Core i5, AMD Ryzen 5 >>> , \n
+    - high: <<< if High-performance processors like Intel Core i7, AMD Ryzen 7 or higher >>> \n
+    {delimiter}
+
+    {delimiter}
+    Here is input output pair for few-shot learning:
+    input 1: "The Dell Inspiron is a versatile laptop that combines powerful performance and affordability. It features an Intel Core i5 processor clocked at 2.4 GHz, ensuring smooth multitasking and efficient computing. With 8GB of RAM and an SSD, it offers quick data access and ample storage capacity. The laptop sports a vibrant 15.6" LCD display with a resolution of 1920x1080, delivering crisp visuals and immersive viewing experience. Weighing just 2.5 kg, it is highly portable, making it ideal for on-the-go usage. Additionally, it boasts an Intel UHD GPU for decent graphical performance and a backlit keyboard for enhanced typing convenience. With a one-year warranty and a battery life of up to 6 hours, the Dell Inspiron is a reliable companion for work or entertainment. All these features are packed at an affordable price of 35,000, making it an excellent choice for budget-conscious users."
+    output 1: {{'GPU intensity': 'medium','Display quality':'medium','Portability':'medium','Multitasking':'high','Processing speed':'medium'}}
+
+    {delimiter}
+    ### Strictly don't keep any other text in the values of the JSON dictionary other than low or medium or high ###
+    """
+    input = f"""Follow the above instructions step-by-step and output the dictionary in JSON format {lap_spec} for the following laptop {laptop_description}."""
+    #see that we are using the Completion endpoint and not the Chatcompletion endpoint
+    messages=[{"role": "system", "content":prompt },{"role": "user","content":input}]
+
+    response = get_chat_completions(messages, json_format = True)
+
+    return response
+
+# Define a Chat Completions API call
+def get_chat_completions(input, json_format = False):
+    MODEL = 'gpt-3.5-turbo'
+
+    system_message_json_output = """<<. Return output in JSON format to the key output.>>"""
+
+    # If the output is required to be in JSON format
+    if json_format == True:
+        # Append the input prompt to include JSON response as specified by OpenAI
+        input[0]['content'] += system_message_json_output
+
+        # JSON return type specified
+        chat_completion_json = openai.chat.completions.create(
+            model = MODEL,
+            messages = input,
+            response_format = { "type": "json_object"},
+            seed = 1234)
+
+        output = json.loads(chat_completion_json.choices[0].message.content)
+
+    # No JSON return type specified
+    else:
+        chat_completion = openai.chat.completions.create(
+            model = MODEL,
+            messages = input,
+            seed = 2345)
+
+        output = chat_completion.choices[0].message.content
+
+    return output
+
+def extract_user_info(GPU_intensity, Display_quality, Portability, Multitasking, Processing_speed, Budget):
+    """
+    Dummy function to simulate extracting user info. In a real application, this function would perform some useful operations.
+
+    Parameters:
+    GPU_intensity (str): GPU intensity required by the user.
+    Display_quality (str): Display quality required by the user.
+    Portability (str): Portability required by the user.
+    Multitasking (str): Multitasking capability required by the user.
+    Processing_speed (str): Processing speed required by the user.
+    Budget (int): Budget of the user.
+
+    Returns:
+    dict: A dictionary containing the extracted information.
+    """
+    return {
+        "GPU intensity": GPU_intensity,
+        "Display quality": Display_quality,
+        "Portability": Portability,
+        "Multitasking": Multitasking,
+        "Processing speed": Processing_speed,
+        "Budget": Budget
+    }
