@@ -1,6 +1,6 @@
 # ShopAssistAI
 Conversational Laptop Recommendation System using Open AI function calling
-<table><tbody><tr><th><p>Project Report</p><h3>ShopAssistAI: Conversational Laptop Recommendation System using Open AI function calling.</h3><h3>Date: 03/15/2024</h3><p>Name: Anand Vardhan Sharan</p></th></tr></tbody></table>
+<table><tbody><tr><th><p>Project Report</p><h3>ShopAssistAI: Conversational Laptop Recommendation System using Open AI function calling.</h3><h3>Date: 03/15/2024</h3><p>Name: Vivek Babu</p></th></tr></tbody></table>
 
 **1\. Introduction**
 
