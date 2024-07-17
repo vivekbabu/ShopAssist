@@ -10,6 +10,7 @@ from functions import (
     compare_laptops_with_user,
     recommendation_validation,
     get_user_requirement_string,
+    get_chat_completions,
     get_chat_completions_func_calling
 )
 import openai
@@ -27,6 +28,14 @@ conversation = initialize_conversation()
 introduction = get_chat_model_completions(conversation)
 conversation_bot.append({'bot':introduction})
 top_3_laptops = None
+
+# Extract the Laptop Features
+laptop_df= pd.read_csv('laptop_data.csv')
+
+# Create a new column "laptop_feature" that contains the dictionary of the product features
+laptop_df['laptop_feature'] = laptop_df['Description'].apply(lambda x: product_map_layer(x))
+laptop_df.to_csv("updated_laptop.csv",index=False,header = True)
+
 
 
 @app.route("/")
