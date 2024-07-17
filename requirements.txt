@@ -4,3 +4,4 @@ pandas
 ast
 re
 json
+tenacity
