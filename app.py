@@ -32,7 +32,7 @@ def default_func():
     global conversation_bot, conversation, top_3_laptops
     return render_template("conversation_bot.html", name_xyz = conversation_bot)
 
-@app.route("/end_conv", methods = ['POST','GET'])
+@app.route("/end_conversation", methods = ['POST','GET'])
 def end_conv():
     global conversation_bot, conversation, top_3_laptops
     conversation_bot = []
@@ -42,7 +42,7 @@ def end_conv():
     top_3_laptops = None
     return redirect(url_for('default_func'))
 
-@app.route("/invite", methods = ['POST'])
+@app.route("/conversation", methods = ['POST'])
 def invite():
     global conversation_bot, conversation, top_3_laptops, conversation_reco
     user_input = request.form["user_input_message"]
@@ -74,7 +74,6 @@ def invite():
             conversation.append({"role": "assistant", "content": response_assistant})
             conversation_bot.append({'bot':response_assistant})
         else:
-
             response = get_user_requirement_string(response_assistant)
             result = get_chat_completions_func_calling(response, True)
             conversation_bot.append({'bot':"Thank you for providing all the information. Kindly wait, while I fetch the products: \n"})
