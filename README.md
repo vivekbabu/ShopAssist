@@ -40,13 +40,7 @@ The Flask application utilizes various functionalities:
 - **User Input Processing:** Captures user input, performs moderation checks, and extracts user profiles from conversation history (converting user input string to JSON using OpenAI Function calling).
 - **Recommendation Logic:** Compares user profiles with laptop data, validates recommendations, and generates recommendation text.
 
-## 6. Evaluation and Testing
-
-- **Unit Testing:** Ensures individual functionalities within the Flask application behave properly.
-- **User Acceptance Testing (UAT):** Assesses the application's usability, effectiveness, and overall user experience with a representative group of users.
-- **A/B Testing:** Tests different conversation flows or recommendation algorithms to determine the most user-friendly and effective approach.
-
-## 7. Conclusion
+## 6. Conclusion
 
 ShopAssistAI provides an interactive and user-friendly way for users to find the perfect laptop. By leveraging AI-powered conversation and personalized recommendations, ShopAssistAI simplifies the laptop selection process. Future development could involve:
 
@@ -54,7 +48,7 @@ ShopAssistAI provides an interactive and user-friendly way for users to find the
 - Expanding the recommendation engine to include other electronic products.
 - Implementing a user feedback mechanism to continuously improve recommendation accuracy, potentially using reinforcement learning techniques.
 
-## 8. Appendix - I
+## 7. Appendix - I
 
 ### High-Level Flow Chart
 
